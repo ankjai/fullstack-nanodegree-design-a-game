@@ -10,7 +10,7 @@ handlers:
   upload: favicon\.ico
 
 - url: /_ah/spi/.*
-  script: api.api
+  script: services.api
   secure: always
 
 - url: .*
