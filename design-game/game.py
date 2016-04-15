@@ -106,6 +106,7 @@ class GameApi(remote.Service):
                       name='get_all_scores',
                       http_method='POST')
     def get_all_scores(self, request):
+        """Get all score ordered by game_score"""
         scores = self._get_all_scores(request)
         return GetScoreForms(
             items=[self._copy_score_to_form(score) for score in scores]

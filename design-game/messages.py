@@ -35,6 +35,21 @@ class GetScoreResponse(messages.Message):
 
 
 # ------ Forms ---------
+class CreateUserForm(messages.Message):
+    """Create User"""
+    user_name = messages.StringField(1, required=True)
+    email = messages.StringField(2, required=True)
+    display_name = messages.StringField(3)
+
+
+class UpdateUserForm(messages.Message):
+    """Update User"""
+    current_user_name = messages.StringField(1, required=True)
+    user_name = messages.StringField(2)
+    email = messages.StringField(3)
+    display_name = messages.StringField(4)
+
+
 class GetUserForm(messages.Message):
     """Get User"""
     user_name = messages.StringField(1, required=True)
