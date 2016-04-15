@@ -3,8 +3,10 @@ from google.appengine.ext import ndb
 from protorpc import remote
 
 from messages import GetUserForm, NewGameForm, NewGameResponse, GetGameForm, GetGameResponse, GuessCharForm, \
-    GetScoreResponse, GetScoreForm, GetScoreForms, GetAllScoreForm
-from models import User, Game, Score
+    GetScoreResponse, GetScoreForm, GetScoreForms, GetAllScoreForm, GetActiveGameResponseList, \
+    GetActiveGameResponse
+from models import User, Game, Score, GameStatus
+from utils import get_user
 
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -24,7 +26,7 @@ class GameApi(remote.Service):
                       path='new_game',
                       name='new_game',
                       http_method='POST')
-    def new_game(self, request):
+    def endpoint_new_game(self, request):
         """Create new game."""
         user = User.query(User.user_name == request.user_name).get()
 
@@ -40,7 +42,7 @@ class GameApi(remote.Service):
                       path='get_game',
                       name='get_game',
                       http_method='POST')
-    def get_game(self, request):
+    def endpoint_get_game(self, request):
         """Get game using game's urlsafe_key"""
         game = self._get_game(request)
 
@@ -57,7 +59,7 @@ class GameApi(remote.Service):
                       path='guess_char',
                       name='guess_char',
                       http_method='POST')
-    def guess_char(self, request):
+    def endpoint_guess_char(self, request):
         """Guess char of the word"""
         game = self._get_game(request)
 
@@ -78,7 +80,7 @@ class GameApi(remote.Service):
                       path='get_game_score',
                       name='get_game_score',
                       http_method='POST')
-    def get_game_score(self, request):
+    def endpoint_get_game_score(self, request):
         """Get score of the game"""
         game = self._get_game(request)
 
@@ -93,7 +95,7 @@ class GameApi(remote.Service):
                       path='get_user_scores',
                       name='get_user_scores',
                       http_method='POST')
-    def get_user_scores(self, request):
+    def endpoint_get_user_scores(self, request):
         """Get scores of a user"""
         scores = self._get_user_score(request)
         return GetScoreForms(
@@ -105,12 +107,56 @@ class GameApi(remote.Service):
                       path='get_all_scores',
                       name='get_all_scores',
                       http_method='POST')
-    def get_all_scores(self, request):
+    def endpoint_get_all_scores(self, request):
         """Get all score ordered by game_score"""
         scores = self._get_all_scores(request)
         return GetScoreForms(
             items=[self._copy_score_to_form(score) for score in scores]
         )
+
+    @endpoints.method(request_message=GET_USER_REQUEST,
+                      response_message=GetActiveGameResponseList,
+                      path='get_user_active_games',
+                      name='get_user_active_games',
+                      http_method='POST')
+    def endpoint_get_user_active_games(self, request):
+        """Get user's active games list"""
+        # get user object
+        user = get_user(request.user_name)
+
+        # get all games of this user
+        all_games = self._get_user_games(user.user_name)
+
+        # create filter for active games
+        active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.IN_SESSION.number)
+
+        # fetch all active games of this user
+        active_games = all_games.filter(active_filter).fetch()
+
+        return GetActiveGameResponseList(
+            games=[self._create_active_game_list(active_game) for active_game in active_games]
+        )
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GetActiveGameResponse,
+                      path='cancel_game',
+                      name='cancel_game',
+                      http_method='POST')
+    def endpoint_cancel_game(self, request):
+        """Cancel active game"""
+        game = self._get_game(request)
+
+        game.cancel_game()
+
+        return GetActiveGameResponse(game_urlsafe_key=game.key.urlsafe(),
+                                     game_id=game.game_id,
+                                     game_name=game.game_name,
+                                     game_over=game.game_over,
+                                     game_status=game.game_status)
+
+    @staticmethod
+    def _get_user_games(user_name):
+        return Game.query(ancestor=ndb.Key(User, user_name))
 
     @staticmethod
     def _get_game(request):
@@ -118,7 +164,7 @@ class GameApi(remote.Service):
         game = ndb.Key(urlsafe=request.urlsafe_key).get()
 
         # get games by ancestor
-        game_filtered_by_ancestor = Game.query(ancestor=ndb.Key(User, request.user_name))
+        game_filtered_by_ancestor = GameApi._get_user_games(request.user_name)
 
         # create filter
         game_filter = ndb.query.FilterNode('game_id', '=', game.game_id)
@@ -176,3 +222,17 @@ class GameApi(remote.Service):
         gsf.check_initialized()
 
         return gsf
+
+    @staticmethod
+    def _create_active_game_list(active_game):
+        gagr = GetActiveGameResponse()
+
+        for field in gagr.all_fields():
+            if field.name == 'game_urlsafe_key':
+                setattr(gagr, field.name, active_game.key.urlsafe())
+            elif hasattr(active_game, field.name):
+                setattr(gagr, field.name, getattr(active_game, field.name))
+
+        gagr.check_initialized()
+
+        return gagr

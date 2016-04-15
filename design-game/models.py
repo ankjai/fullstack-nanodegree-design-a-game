@@ -99,6 +99,18 @@ class Game(ndb.Model):
 
         return self
 
+    def cancel_game(self):
+        # return if game is already over
+        if self.game_over:
+            return self
+        # cancel game and update status accordingly
+        else:
+            self.game_status = GameStatus.ABORTED
+            self.game_over = True
+
+        # save the game
+        self.put()
+
 
 class Score(ndb.Model):
     """Score Model"""

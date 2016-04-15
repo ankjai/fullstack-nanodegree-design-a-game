@@ -1,6 +1,7 @@
 import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote, message_types
+from utils import get_user
 
 from messages import UserResponse, CreateUserForm, UpdateUserForm, GetUserForm
 from models import User
@@ -55,7 +56,7 @@ class UserApi(remote.Service):
                       http_method='POST')
     def update_user(self, request):
         """Update existing user"""
-        user = self._get_user(request.current_user_name)
+        user = get_user(request.current_user_name)
 
         for field in request.all_fields():
             # check if any field has been updated
@@ -73,18 +74,9 @@ class UserApi(remote.Service):
                       http_method='POST')
     def delete_user(self, request):
         """Delete existing user"""
-        user = self._get_user(request.user_name)
+        user = get_user(request.user_name)
 
         # delete the entity
         user.key.delete()
 
         return message_types.VoidMessage()
-
-    @staticmethod
-    def _get_user(user_name):
-        user = User.query(User.user_name == user_name).get()
-
-        if not user:
-            raise endpoints.NotFoundException('ERR_USER_NOT_FOUND')
-
-        return user
