@@ -34,6 +34,18 @@ class GetScoreResponse(messages.Message):
     timestamp = message_types.DateTimeField(3)
 
 
+class GetActiveGameResponse(messages.Message):
+    game_urlsafe_key = messages.StringField(1)
+    game_id = messages.IntegerField(2)
+    game_name = messages.StringField(3)
+    game_over = messages.BooleanField(4)
+    game_status = messages.EnumField(GameStatus, 5)
+
+
+class GetActiveGameResponseList(messages.Message):
+    games = messages.MessageField(GetActiveGameResponse, 1, repeated=True)
+
+
 # ------ Forms ---------
 class CreateUserForm(messages.Message):
     """Create User"""
