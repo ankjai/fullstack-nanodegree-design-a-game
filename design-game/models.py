@@ -2,6 +2,7 @@ from google.appengine.ext import ndb
 from google.appengine.ext.ndb import msgprop
 from protorpc import messages
 from random_words import RandomWords
+from trueskill import Rating, rate_1vs1
 
 
 class User(ndb.Model):
@@ -9,6 +10,8 @@ class User(ndb.Model):
     user_name = ndb.StringProperty(required=True)
     email = ndb.StringProperty(required=True)
     display_name = ndb.StringProperty()
+    mu = ndb.FloatProperty(required=True)
+    sigma = ndb.FloatProperty(required=True)
 
 
 class GameStatus(messages.Enum):
@@ -71,12 +74,13 @@ class Game(ndb.Model):
 
         return game
 
-    def move_game(self, score, char):
+    def move_game(self, user, score, char):
         # continue only if game is not over
         if self.game_over:
-            return self
+            return
+
         # chk if char exists in the word
-        elif char in self.word:
+        if char in self.word:
             for pos, char_in_that_pos in enumerate(self.word):
                 if char_in_that_pos == char:
                     self.guessed_chars_of_word[pos] = char
@@ -84,20 +88,20 @@ class Game(ndb.Model):
                 self.game_over = True
                 self.game_status = GameStatus.WON
                 score.game_score = self.guesses_left
+                self._update_user_rating(user, True)
         # in case of miss, reduce guesses_left
         elif self.guesses_left > 0:
             self.guesses_left -= 1
             if self.guesses_left == 0:
                 self.game_over = True
                 self.game_status = GameStatus.LOST
+                self._update_user_rating(user, False)
 
         # save the game
         self.put()
 
         # save the score
         score.put()
-
-        return self
 
     def cancel_game(self):
         # return if game is already over
@@ -110,6 +114,26 @@ class Game(ndb.Model):
 
         # save the game
         self.put()
+
+    @staticmethod
+    def _update_user_rating(user, user_winner):
+        # create rating obj from user's mu and sigma
+        user_rating = Rating(mu=user.mu, sigma=user.sigma)
+
+        # create default rating obj
+        default_rating = Rating()
+
+        if user_winner:
+            user_rating, default_rating = rate_1vs1(user_rating, default_rating)
+        else:
+            default_rating, user_rating = rate_1vs1(default_rating, user_rating)
+
+        # update w/ new user rating
+        user.mu = user_rating.mu
+        user.sigma = user_rating.sigma
+
+        # save the user
+        user.put()
 
 
 class Score(ndb.Model):

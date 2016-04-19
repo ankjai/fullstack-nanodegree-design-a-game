@@ -1,10 +1,11 @@
 import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote, message_types
-from utils import get_user
+from trueskill import Rating
 
 from messages import UserResponse, CreateUserForm, UpdateUserForm, GetUserForm
 from models import User
+from utils import get_user
 
 CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
 UPDATE_USER_REQUEST = endpoints.ResourceContainer(UpdateUserForm)
@@ -40,11 +41,16 @@ class UserApi(remote.Service):
         if User.query(User.email == request.email).get():
             raise endpoints.ConflictException('ERR_EMAIL_EXISTS: {}'.format(request.email))
 
+        # create rating obj for new user
+        user_default_rating = Rating()
+
         # create user
         user = User(key=ndb.Key(User, request.user_name),
                     user_name=request.user_name,
                     email=request.email,
-                    display_name=request.display_name)
+                    display_name=request.display_name,
+                    mu=user_default_rating.mu,
+                    sigma=user_default_rating.sigma)
         user.put()
 
         return UserResponse(user_name=user.user_name, email=user.email, display_name=user.display_name)

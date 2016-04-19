@@ -46,6 +46,16 @@ class GetActiveGameResponseList(messages.Message):
     games = messages.MessageField(GetActiveGameResponse, 1, repeated=True)
 
 
+class GetUserRankingResponse(messages.Message):
+    user_name = messages.StringField(1, required=True)
+    user_ranking = messages.IntegerField(2, required=True)
+    user_performance = messages.FloatField(3, required=True)
+
+
+class GetUserRankingResponseList(messages.Message):
+    rankings = messages.MessageField(GetUserRankingResponse, 1, repeated=True)
+
+
 # ------ Forms ---------
 class CreateUserForm(messages.Message):
     """Create User"""
