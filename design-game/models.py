@@ -1,8 +1,6 @@
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import msgprop
 from protorpc import messages
-from random_words import RandomWords
-from trueskill import Rating, rate_1vs1
 
 
 class User(ndb.Model):
@@ -32,109 +30,6 @@ class Game(ndb.Model):
     game_over = ndb.BooleanProperty(default=False)
     game_status = msgprop.EnumProperty(GameStatus, default=GameStatus.IN_SESSION)
 
-    @classmethod
-    def new_game(cls, user, game_name):
-        # retrieve key from user_name
-        user_key = ndb.Key(User, user.user_name)
-
-        # generate game_id
-        game_id = Game.allocate_ids(size=1, parent=user_key)[0]
-
-        # create key using generated game_id and user as its ancestor
-        game_key = ndb.Key(Game, game_id, parent=user_key)
-
-        # generate random word for this game
-        rw = RandomWords()
-        word = rw.random_word()
-
-        guessed_chars_of_word = []
-
-        # make this impl more 'pythonic' way
-        for c in word:
-            guessed_chars_of_word.append('*')
-
-        game = Game(key=game_key,
-                    game_id=game_id,
-                    game_name=game_name,
-                    word=word,
-                    guessed_chars_of_word=guessed_chars_of_word)
-        game.put()
-
-        # score id
-        score_id = Score.allocate_ids(size=1, parent=user_key)[0]
-
-        # score key using generated score_id and user as its ancestor
-        score_key = ndb.Key(Score, score_id, parent=user_key)
-
-        # score entity for this game
-        score = Score(key=score_key,
-                      score_id=score_id,
-                      game_key=game_key)
-        score.put()
-
-        return game
-
-    def move_game(self, user, score, char):
-        # continue only if game is not over
-        if self.game_over:
-            return
-
-        # chk if char exists in the word
-        if char in self.word:
-            for pos, char_in_that_pos in enumerate(self.word):
-                if char_in_that_pos == char:
-                    self.guessed_chars_of_word[pos] = char
-            if '*' not in self.guessed_chars_of_word:
-                self.game_over = True
-                self.game_status = GameStatus.WON
-                score.game_score = self.guesses_left
-                self._update_user_rating(user, True)
-        # in case of miss, reduce guesses_left
-        elif self.guesses_left > 0:
-            self.guesses_left -= 1
-            if self.guesses_left == 0:
-                self.game_over = True
-                self.game_status = GameStatus.LOST
-                self._update_user_rating(user, False)
-
-        # save the game
-        self.put()
-
-        # save the score
-        score.put()
-
-    def cancel_game(self):
-        # return if game is already over
-        if self.game_over:
-            return self
-        # cancel game and update status accordingly
-        else:
-            self.game_status = GameStatus.ABORTED
-            self.game_over = True
-
-        # save the game
-        self.put()
-
-    @staticmethod
-    def _update_user_rating(user, user_winner):
-        # create rating obj from user's mu and sigma
-        user_rating = Rating(mu=user.mu, sigma=user.sigma)
-
-        # create default rating obj
-        default_rating = Rating()
-
-        if user_winner:
-            user_rating, default_rating = rate_1vs1(user_rating, default_rating)
-        else:
-            default_rating, user_rating = rate_1vs1(default_rating, user_rating)
-
-        # update w/ new user rating
-        user.mu = user_rating.mu
-        user.sigma = user_rating.sigma
-
-        # save the user
-        user.put()
-
 
 class Score(ndb.Model):
     """Score Model"""
@@ -142,3 +37,10 @@ class Score(ndb.Model):
     game_key = ndb.KeyProperty(required=True, kind='Game')
     timestamp = ndb.DateTimeProperty(required=True, auto_now_add=True)
     game_score = ndb.IntegerProperty(required=True, default=0)
+
+
+class GameHistory(ndb.Model):
+    """Game History Model"""
+    step_timestamp = ndb.DateTimeProperty(required=True, auto_now_add=True)
+    step_char = ndb.StringProperty()
+    game_snapshot = ndb.StructuredProperty(Game)
