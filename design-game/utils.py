@@ -1,7 +1,7 @@
 import endpoints
 from google.appengine.ext import ndb
 
-from models import User, Game, Score
+from models import User, Game, Score, GameHistory
 
 
 def get_user(user_name):
@@ -81,3 +81,13 @@ def get_all_users(fetch):
         return query.fetch(fetch)
     else:
         return query.fetch()
+
+
+def get_game_history(game):
+    # query by kind
+    query = GameHistory.query(ancestor=game.key)
+
+    # order by timestamp
+    query.order(GameHistory.step_timestamp)
+
+    return query.fetch()

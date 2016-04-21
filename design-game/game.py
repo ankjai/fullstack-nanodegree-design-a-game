@@ -1,11 +1,13 @@
 import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote
+from random_words import RandomWords
+from trueskill import Rating, rate_1vs1
 
 from messages import GetUserForm, NewGameForm, NewGameResponse, GetGameForm, GetGameResponse, GuessCharForm, \
-    GetActiveGameResponseList, GetActiveGameResponse
-from models import Game, GameStatus
-from utils import get_user, get_game, get_game_score, get_user_games
+    GetActiveGameResponseList, GetActiveGameResponse, GetGameHistoryResponseList, GetGameHistoryResponse
+from models import Game, GameStatus, User, Score, GameHistory
+from utils import get_user, get_game, get_game_score, get_user_games, get_game_history
 
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -28,7 +30,7 @@ class GameApi(remote.Service):
         """Create new game."""
         user = get_user(request.user_name)
 
-        game = Game.new_game(user, request.game_name)
+        game = self._new_game(user, request.game_name)
 
         return NewGameResponse(urlsafe_key=game.key.urlsafe())
 
@@ -62,7 +64,7 @@ class GameApi(remote.Service):
 
         score = get_game_score(user.user_name, game)
 
-        game.move_game(user, score, request.char)
+        self._move_game(game, user, score, request.char)
 
         return GetGameResponse(game_name=game.game_name,
                                word=game.word,
@@ -104,13 +106,155 @@ class GameApi(remote.Service):
         """Cancel active game"""
         game = get_game(request.urlsafe_key, request.user_name)
 
-        game.cancel_game()
+        self._cancel_game(game)
 
         return GetActiveGameResponse(game_urlsafe_key=game.key.urlsafe(),
                                      game_id=game.game_id,
                                      game_name=game.game_name,
                                      game_over=game.game_over,
                                      game_status=game.game_status)
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GetGameHistoryResponseList,
+                      path='get_game_history',
+                      name='get_game_history',
+                      http_method='POST')
+    def endpoint_get_game_history(self, request):
+        game = get_game(request.urlsafe_key, request.user_name)
+
+        steps = get_game_history(game)
+
+        return GetGameHistoryResponseList(
+            steps=[self._create_game_histroy_list(step) for step in steps]
+        )
+
+    def _new_game(self, user, game_name):
+        # retrieve key from user_name
+        user_key = ndb.Key(User, user.user_name)
+
+        # generate game_id
+        game_id = Game.allocate_ids(size=1, parent=user_key)[0]
+
+        # create key using generated game_id and user as its ancestor
+        game_key = ndb.Key(Game, game_id, parent=user_key)
+
+        # generate random word for this game
+        rw = RandomWords()
+        word = rw.random_word()
+
+        guessed_chars_of_word = []
+
+        # make this impl more 'pythonic' way
+        for c in word:
+            guessed_chars_of_word.append('*')
+
+        game = Game(key=game_key,
+                    game_id=game_id,
+                    game_name=game_name,
+                    word=word,
+                    guessed_chars_of_word=guessed_chars_of_word)
+        # save game
+        game.put()
+
+        # score id
+        score_id = Score.allocate_ids(size=1, parent=user_key)[0]
+
+        # score key using generated score_id and user as its ancestor
+        score_key = ndb.Key(Score, score_id, parent=user_key)
+
+        # score entity for this game
+        score = Score(key=score_key,
+                      score_id=score_id,
+                      game_key=game_key)
+        # save score
+        score.put()
+
+        # capture game snapshot
+        self._capture_game_snapshot(game, '')
+
+        return game
+
+    def _move_game(self, game, user, score, char):
+        # continue only if game is not over
+        if game.game_over:
+            return
+
+        # chk if char exists in the word
+        if char in game.word:
+            for pos, char_in_that_pos in enumerate(game.word):
+                if char_in_that_pos == char:
+                    game.guessed_chars_of_word[pos] = char
+            if '*' not in game.guessed_chars_of_word:
+                game.game_over = True
+                game.game_status = GameStatus.WON
+                score.game_score = game.guesses_left
+                self._update_user_rating(user, True)
+        # in case of miss, reduce guesses_left
+        elif game.guesses_left > 0:
+            game.guesses_left -= 1
+            if game.guesses_left == 0:
+                game.game_over = True
+                game.game_status = GameStatus.LOST
+                self._update_user_rating(user, False)
+
+        # save the game
+        game.put()
+
+        # save the score
+        score.put()
+
+        # capture game snapshot
+        self._capture_game_snapshot(game, char)
+
+    def _cancel_game(self, game):
+        # return if game is already over
+        if game.game_over:
+            return game
+        # cancel game and update status accordingly
+        else:
+            game.game_status = GameStatus.ABORTED
+            game.game_over = True
+
+        # save the game
+        game.put()
+
+        # capture game snapshot
+        self._capture_game_snapshot(game, '')
+
+    @staticmethod
+    def _update_user_rating(user, user_winner):
+        # create rating obj from user's mu and sigma
+        user_rating = Rating(mu=user.mu, sigma=user.sigma)
+
+        # create default rating obj
+        default_rating = Rating()
+
+        if user_winner:
+            user_rating, default_rating = rate_1vs1(user_rating, default_rating)
+        else:
+            default_rating, user_rating = rate_1vs1(default_rating, user_rating)
+
+        # update w/ new user rating
+        user.mu = user_rating.mu
+        user.sigma = user_rating.sigma
+
+        # save the user
+        user.put()
+
+    @staticmethod
+    def _capture_game_snapshot(game, char):
+        # game history is per game, so parent should be game and not the user
+        # game history id
+        history_id = GameHistory.allocate_ids(size=1, parent=game.key)[0]
+
+        # game history key generated using history_id and game as its ancestor
+        history_key = ndb.Key(GameHistory, history_id, parent=game.key)
+
+        game_history = GameHistory(key=history_key,
+                                   step_char=char,
+                                   game_snapshot=game)
+        # save game history
+        game_history.put()
 
     @staticmethod
     def _create_active_game_list(active_game):
@@ -125,3 +269,17 @@ class GameApi(remote.Service):
         gagr.check_initialized()
 
         return gagr
+
+    @staticmethod
+    def _create_game_histroy_list(step):
+        gghr = GetGameHistoryResponse()
+
+        for field in gghr.all_fields():
+            if hasattr(step, field.name):
+                setattr(gghr, field.name, getattr(step, field.name))
+            elif hasattr(step.game_snapshot, field.name):
+                setattr(gghr, field.name, getattr(step.game_snapshot, field.name))
+
+        gghr.check_initialized()
+
+        return gghr

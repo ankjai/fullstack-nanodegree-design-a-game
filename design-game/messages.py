@@ -56,6 +56,20 @@ class GetUserRankingResponseList(messages.Message):
     rankings = messages.MessageField(GetUserRankingResponse, 1, repeated=True)
 
 
+class GetGameHistoryResponse(messages.Message):
+    step_timestamp = message_types.DateTimeField(1, required=True)
+    step_char = messages.StringField(2)
+    guessed_chars_of_word = messages.StringField(3, repeated=True)
+    guesses_left = messages.IntegerField(4)
+    game_over = messages.BooleanField(5)
+    game_status = messages.EnumField(GameStatus, 6)
+    word = messages.StringField(7)
+
+
+class GetGameHistoryResponseList(messages.Message):
+    steps = messages.MessageField(GetGameHistoryResponse, 1, repeated=True)
+
+
 # ------ Forms ---------
 class CreateUserForm(messages.Message):
     """Create User"""
