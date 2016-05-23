@@ -19,13 +19,14 @@ class NewGameResponse(messages.Message):
 
 
 class GetGameResponse(messages.Message):
-    game_name = messages.StringField(1)
-    word = messages.StringField(2)
-    guessed_chars_of_word = messages.StringField(3, repeated=True)
-    guesses_left = messages.IntegerField(4)
-    game_over = messages.BooleanField(5)
-    game_status = messages.EnumField(GameStatus, 6)
-    urlsafe_key = messages.StringField(7, required=True)
+    id = messages.IntegerField(1)
+    game_name = messages.StringField(2)
+    word = messages.StringField(3)
+    guessed_chars_of_word = messages.StringField(4, repeated=True)
+    guesses_left = messages.IntegerField(5)
+    game_over = messages.BooleanField(6)
+    game_status = messages.EnumField(GameStatus, 7)
+    urlsafe_key = messages.StringField(8, required=True)
 
 
 class GetScoreResponse(messages.Message):
@@ -89,6 +90,12 @@ class UpdateUserForm(messages.Message):
 class GetUserForm(messages.Message):
     """Get User"""
     user_name = messages.StringField(1, required=True)
+
+
+class GetUserFormWithGameStatus(messages.Message):
+    """Get User w/ game status"""
+    user_name = messages.StringField(1, required=True)
+    game_status = messages.EnumField(GameStatus, 2)
 
 
 class NewGameForm(messages.Message):
