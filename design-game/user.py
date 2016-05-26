@@ -8,6 +8,7 @@ from models import User
 from utils import get_user
 
 CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
+GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
 UPDATE_USER_REQUEST = endpoints.ResourceContainer(UpdateUserForm)
 DELETE_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
 
@@ -53,6 +54,16 @@ class UserApi(remote.Service):
                     sigma=user_default_rating.sigma)
         user.put()
 
+        return UserResponse(user_name=user.user_name, email=user.email, display_name=user.display_name)
+
+    @endpoints.method(request_message=GET_USER_REQUEST,
+                      response_message=UserResponse,
+                      path='get_user',
+                      name='get_user',
+                      http_method='POST')
+    def get_user(self, request):
+        """Get existing user"""
+        user = get_user(request.user_name)
         return UserResponse(user_name=user.user_name, email=user.email, display_name=user.display_name)
 
     @endpoints.method(request_message=UPDATE_USER_REQUEST,

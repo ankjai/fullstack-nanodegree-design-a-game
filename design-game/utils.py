@@ -55,6 +55,15 @@ def get_user_score(user_name):
     return Score.query(ancestor=ndb.Key(User, user_name))
 
 
+def get_user_score_orderby_game_score(user_name):
+    query = get_user_score(user_name)
+
+    # order by game_score
+    query.order(Score.game_score)
+
+    return query.fetch()
+
+
 def get_all_scores(fetch):
     # query by kind
     query = Score.query()

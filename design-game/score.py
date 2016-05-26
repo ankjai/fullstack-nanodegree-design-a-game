@@ -4,7 +4,8 @@ from trueskill import TrueSkill
 
 from messages import GetScoreResponse, GetGameForm, GetUserForm, GetScoreForm, GetScoreForms, GetAllScoreForm, \
     GetUserRankingResponse, GetUserRankingResponseList
-from utils import get_user_score, get_all_scores, get_game, get_game_score, get_all_users, get_user
+from utils import get_all_scores, get_game, get_game_score, get_all_users, get_user, \
+    get_user_score_orderby_game_score
 
 GET_SCORE_REQUEST = endpoints.ResourceContainer(GetGameForm)
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
@@ -38,8 +39,8 @@ class ScoreApi(remote.Service):
                       name='get_user_scores',
                       http_method='POST')
     def endpoint_get_user_scores(self, request):
-        """Get scores of a user"""
-        scores = get_user_score(request.user_name)
+        """Get scores of a user ordered by game score"""
+        scores = get_user_score_orderby_game_score(request.user_name)
 
         return GetScoreForms(
             items=[self._copy_score_to_form(score) for score in scores]

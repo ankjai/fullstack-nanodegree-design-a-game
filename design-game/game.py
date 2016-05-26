@@ -5,11 +5,13 @@ from random_words import RandomWords
 from trueskill import Rating, rate_1vs1
 
 from messages import GetUserForm, NewGameForm, NewGameResponse, GetGameForm, GetGameResponse, GuessCharForm, \
-    GetActiveGameResponseList, GetActiveGameResponse, GetGameHistoryResponseList, GetGameHistoryResponse
+    GetActiveGameResponseList, GetActiveGameResponse, GetGameHistoryResponseList, GetGameHistoryResponse, \
+    GetUserFormWithGameStatus
 from models import Game, GameStatus, User, Score, GameHistory
 from utils import get_user, get_game, get_game_score, get_user_games, get_game_history
 
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
+GET_USER_WITH_GAME_STATUS_REQUEST = endpoints.ResourceContainer(GetUserFormWithGameStatus)
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(GetGameForm)
 GUESS_CHAR_REQUEST = endpoints.ResourceContainer(GuessCharForm)
@@ -43,7 +45,8 @@ class GameApi(remote.Service):
         """Get game using game's urlsafe_key"""
         game = get_game(request.urlsafe_key, request.user_name)
 
-        return GetGameResponse(game_name=game.game_name,
+        return GetGameResponse(id=game.game_id,
+                               game_name=game.game_name,
                                word=game.word,
                                guessed_chars_of_word=game.guessed_chars_of_word,
                                guesses_left=game.guesses_left,
@@ -66,7 +69,8 @@ class GameApi(remote.Service):
 
         self._move_game(game, user, score, request.char)
 
-        return GetGameResponse(game_name=game.game_name,
+        return GetGameResponse(id=game.game_id,
+                               game_name=game.game_name,
                                word=game.word,
                                guessed_chars_of_word=game.guessed_chars_of_word,
                                guesses_left=game.guesses_left,
@@ -74,12 +78,12 @@ class GameApi(remote.Service):
                                game_status=game.game_status,
                                urlsafe_key=game.key.urlsafe())
 
-    @endpoints.method(request_message=GET_USER_REQUEST,
+    @endpoints.method(request_message=GET_USER_WITH_GAME_STATUS_REQUEST,
                       response_message=GetActiveGameResponseList,
-                      path='get_user_active_games',
-                      name='get_user_active_games',
+                      path='get_user_games',
+                      name='get_user_games',
                       http_method='POST')
-    def endpoint_get_user_active_games(self, request):
+    def endpoint_get_user_games(self, request):
         """Get user's active games list"""
         # get user object
         user = get_user(request.user_name)
@@ -87,14 +91,48 @@ class GameApi(remote.Service):
         # get all games of this user
         all_games = get_user_games(user.user_name)
 
-        # create filter for active games
-        active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.IN_SESSION.number)
+        if request.game_status is not None:
+            # create filter for active games
+            if request.game_status == GameStatus.IN_SESSION:
+                active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.IN_SESSION.number)
+            elif request.game_status == GameStatus.WON:
+                active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.WON.number)
+            elif request.game_status == GameStatus.LOST:
+                active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.LOST.number)
+            elif request.game_status == GameStatus.ABORTED:
+                active_filter = ndb.query.FilterNode('game_status', '=', GameStatus.ABORTED.number)
 
-        # fetch all active games of this user
-        active_games = all_games.filter(active_filter).fetch()
+            # fetch games of this user
+            active_games = all_games.filter(active_filter).fetch()
+        else:
+            # fetch games of this user
+            active_games = all_games.fetch()
 
         return GetActiveGameResponseList(
             games=[self._create_active_game_list(active_game) for active_game in active_games]
+        )
+
+    @endpoints.method(request_message=GET_USER_REQUEST,
+                      response_message=GetActiveGameResponseList,
+                      path='get_user_completed_games',
+                      name='get_user_completed_games',
+                      http_method='POST')
+    def endpoint_get_user_completed_games(self, request):
+        """Get user's completed game list"""
+        # get user object
+        user = get_user(request.user_name)
+
+        # get all games of this user
+        all_games = get_user_games(user.user_name)
+
+        # create filter for completed games
+        completed_filter = ndb.query.FilterNode('game_status', '!=', GameStatus.IN_SESSION.number)
+
+        # fetch all completed games of this user
+        completed_games = all_games.filter(completed_filter).order(Game.game_status, -Game.game_id).fetch()
+
+        return GetActiveGameResponseList(
+            games=[self._create_active_game_list(completed_games) for completed_games in completed_games]
         )
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
