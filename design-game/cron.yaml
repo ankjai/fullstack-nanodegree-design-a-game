@@ -1,0 +1,4 @@
+cron:
+- description: Send reminders to players who have not made any move in past 24 hrs.
+  url: /crons/send_email_reminders
+  schedule: every day 06:00
