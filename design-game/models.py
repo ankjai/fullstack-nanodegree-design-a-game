@@ -29,6 +29,7 @@ class Game(ndb.Model):
     guesses_left = ndb.IntegerProperty(default=6)
     game_over = ndb.BooleanProperty(default=False)
     game_status = msgprop.EnumProperty(GameStatus, default=GameStatus.IN_SESSION)
+    timestamp = ndb.DateTimeProperty(required=True, auto_now=True)
 
 
 class Score(ndb.Model):
