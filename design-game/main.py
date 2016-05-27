@@ -36,7 +36,7 @@ class SendEmailReminderHandler(webapp2.RequestHandler):
 
         timestamp = datetime.datetime.now() - datetime.timedelta(hours=24)
 
-        users = get_all_users()
+        users = get_all_users(100)
 
         for user in users:
             all_games = get_user_games(user.user_name)
