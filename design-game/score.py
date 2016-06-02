@@ -22,7 +22,7 @@ class ScoreApi(remote.Service):
                       response_message=GetScoreResponse,
                       path='get_game_score',
                       name='get_game_score',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_game_score(self, request):
         """Get score of the game"""
         game = get_game(request.urlsafe_key, request.user_name)
@@ -37,7 +37,7 @@ class ScoreApi(remote.Service):
                       response_message=GetScoreForms,
                       path='get_user_scores',
                       name='get_user_scores',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_user_scores(self, request):
         """Get scores of a user ordered by game score"""
         scores = get_user_score_orderby_game_score(request.user_name)
@@ -50,7 +50,7 @@ class ScoreApi(remote.Service):
                       response_message=GetScoreForms,
                       path='get_all_scores',
                       name='get_all_scores',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_all_scores(self, request):
         """Get all score ordered by game_score"""
         scores = get_all_scores(request.fetch)
@@ -63,7 +63,7 @@ class ScoreApi(remote.Service):
                       response_message=GetUserRankingResponse,
                       path='get_user_ranking',
                       name='get_user_ranking',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_user_ranking(self, request):
         """Get ranking of a user"""
         user = get_user(request.user_name)
@@ -87,7 +87,7 @@ class ScoreApi(remote.Service):
                       response_message=GetUserRankingResponseList,
                       name='get_leaderboard',
                       path='get_leaderboard',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_leaderboard(self, request):
         """get leaderboard"""
         # fetch desired no. of users max 100
