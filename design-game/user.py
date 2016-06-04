@@ -60,7 +60,7 @@ class UserApi(remote.Service):
                       response_message=UserResponse,
                       path='get_user',
                       name='get_user',
-                      http_method='POST')
+                      http_method='GET')
     def get_user(self, request):
         """Get existing user"""
         user = get_user(request.user_name)
@@ -70,7 +70,7 @@ class UserApi(remote.Service):
                       response_message=UserResponse,
                       path='update_user',
                       name='update_user',
-                      http_method='POST')
+                      http_method='PATCH')
     def update_user(self, request):
         """Update existing user"""
         user = get_user(request.current_user_name)
@@ -88,7 +88,7 @@ class UserApi(remote.Service):
                       response_message=message_types.VoidMessage,
                       path='delete_user',
                       name='delete_user',
-                      http_method='POST')
+                      http_method='DELETE')
     def delete_user(self, request):
         """Delete existing user"""
         user = get_user(request.user_name)

@@ -40,7 +40,7 @@ class GameApi(remote.Service):
                       response_message=GetGameResponse,
                       path='get_game',
                       name='get_game',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_game(self, request):
         """Get game using game's urlsafe_key"""
         game = get_game(request.urlsafe_key, request.user_name)
@@ -82,9 +82,9 @@ class GameApi(remote.Service):
                       response_message=GetActiveGameResponseList,
                       path='get_user_games',
                       name='get_user_games',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_user_games(self, request):
-        """Get user's active games list"""
+        """Get user's games list"""
         # get user object
         user = get_user(request.user_name)
 
@@ -116,7 +116,7 @@ class GameApi(remote.Service):
                       response_message=GetActiveGameResponseList,
                       path='get_user_completed_games',
                       name='get_user_completed_games',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_user_completed_games(self, request):
         """Get user's completed game list"""
         # get user object
@@ -139,7 +139,7 @@ class GameApi(remote.Service):
                       response_message=GetActiveGameResponse,
                       path='cancel_game',
                       name='cancel_game',
-                      http_method='POST')
+                      http_method='DELETE')
     def endpoint_cancel_game(self, request):
         """Cancel active game"""
         game = get_game(request.urlsafe_key, request.user_name)
@@ -156,7 +156,7 @@ class GameApi(remote.Service):
                       response_message=GetGameHistoryResponseList,
                       path='get_game_history',
                       name='get_game_history',
-                      http_method='POST')
+                      http_method='GET')
     def endpoint_get_game_history(self, request):
         game = get_game(request.urlsafe_key, request.user_name)
 
