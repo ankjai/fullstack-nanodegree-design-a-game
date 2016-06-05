@@ -61,9 +61,21 @@ class GameApi(remote.Service):
                       http_method='POST')
     def endpoint_guess_char(self, request):
         """Guess char of the word"""
+        # only single char supported
+        if len(request.char) != 1:
+            raise endpoints.ForbiddenException('ERR_BAD_CHAR_LENGTH')
+
+        # only alphabet supported
+        if not request.char.isalpha():
+            raise endpoints.ForbiddenException('ERR_NOT_AN_ALPHABET')
+
         user = get_user(request.user_name)
 
         game = get_game(request.urlsafe_key, user.user_name)
+
+        # only IN_SESSION game supported
+        if game.game_status != GameStatus.IN_SESSION:
+            raise endpoints.ForbiddenException('ERR_GAME_NOT_IN_SESSION')
 
         score = get_game_score(user.user_name, game)
 
@@ -143,6 +155,10 @@ class GameApi(remote.Service):
     def endpoint_cancel_game(self, request):
         """Cancel active game"""
         game = get_game(request.urlsafe_key, request.user_name)
+
+        # only IN_SESSION game supported
+        if game.game_status != GameStatus.IN_SESSION:
+            raise endpoints.ForbiddenException('ERR_GAME_NOT_IN_SESSION')
 
         self._cancel_game(game)
 
