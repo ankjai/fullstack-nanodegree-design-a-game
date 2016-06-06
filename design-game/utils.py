@@ -1,7 +1,12 @@
 import endpoints
 from google.appengine.ext import ndb
 
-from models import User, Game, Score, GameHistory
+from models import (
+    User,
+    Game,
+    Score,
+    GameHistory
+)
 
 
 def get_user(user_name):

@@ -1,4 +1,7 @@
-from protorpc import messages, message_types
+from protorpc import (
+    messages,
+    message_types
+)
 
 from models import GameStatus
 

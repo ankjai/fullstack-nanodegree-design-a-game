@@ -21,7 +21,10 @@ from google.appengine.api import mail
 from google.appengine.ext import ndb
 
 from models import GameStatus
-from utils import get_all_users, get_user_games
+from utils import (
+    get_all_users,
+    get_user_games
+)
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -55,7 +58,7 @@ class SendEmailReminderHandler(webapp2.RequestHandler):
     def get():
         email_list = SendEmailReminderHandler.get_email_list()
         for email in email_list:
-            mail.send_mail(sender="anything@hangman-game.appspotmail.com",
+            mail.send_mail(sender="ankit.jaiswal@gmail.com",
                            to=email,
                            subject="Make your move!",
                            body="""

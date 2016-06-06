@@ -2,13 +2,38 @@ import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote
 from random_words import RandomWords
-from trueskill import Rating, rate_1vs1
+from trueskill import (
+    Rating,
+    rate_1vs1
+)
 
-from messages import GetUserForm, NewGameForm, NewGameResponse, GetGameForm, GetGameResponse, GuessCharForm, \
-    GetActiveGameResponseList, GetActiveGameResponse, GetGameHistoryResponseList, GetGameHistoryResponse, \
+from messages import (
+    GetUserForm,
+    NewGameForm,
+    NewGameResponse,
+    GetGameForm,
+    GetGameResponse,
+    GuessCharForm,
+    GetActiveGameResponseList,
+    GetActiveGameResponse,
+    GetGameHistoryResponseList,
+    GetGameHistoryResponse,
     GetUserFormWithGameStatus
-from models import Game, GameStatus, User, Score, GameHistory
-from utils import get_user, get_game, get_game_score, get_user_games, get_game_history
+)
+from models import (
+    Game,
+    GameStatus,
+    User,
+    Score,
+    GameHistory
+)
+from utils import (
+    get_user,
+    get_game,
+    get_game_score,
+    get_user_games,
+    get_game_history
+)
 
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
 GET_USER_WITH_GAME_STATUS_REQUEST = endpoints.ResourceContainer(GetUserFormWithGameStatus)
@@ -312,28 +337,28 @@ class GameApi(remote.Service):
 
     @staticmethod
     def _create_active_game_list(active_game):
-        gagr = GetActiveGameResponse()
+        active_game_resp = GetActiveGameResponse()
 
-        for field in gagr.all_fields():
+        for field in active_game_resp.all_fields():
             if field.name == 'game_urlsafe_key':
-                setattr(gagr, field.name, active_game.key.urlsafe())
+                setattr(active_game_resp, field.name, active_game.key.urlsafe())
             elif hasattr(active_game, field.name):
-                setattr(gagr, field.name, getattr(active_game, field.name))
+                setattr(active_game_resp, field.name, getattr(active_game, field.name))
 
-        gagr.check_initialized()
+        active_game_resp.check_initialized()
 
-        return gagr
+        return active_game_resp
 
     @staticmethod
     def _create_game_histroy_list(step):
-        gghr = GetGameHistoryResponse()
+        game_history_resp = GetGameHistoryResponse()
 
-        for field in gghr.all_fields():
+        for field in game_history_resp.all_fields():
             if hasattr(step, field.name):
-                setattr(gghr, field.name, getattr(step, field.name))
+                setattr(game_history_resp, field.name, getattr(step, field.name))
             elif hasattr(step.game_snapshot, field.name):
-                setattr(gghr, field.name, getattr(step.game_snapshot, field.name))
+                setattr(game_history_resp, field.name, getattr(step.game_snapshot, field.name))
 
-        gghr.check_initialized()
+        game_history_resp.check_initialized()
 
-        return gghr
+        return game_history_resp
