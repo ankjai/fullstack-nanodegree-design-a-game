@@ -75,7 +75,7 @@ For the 'Hangman Game', I have exposed 3 APIs:
 | Score | /score | /v1 | /get_game_score, /get_user_scores, /get_all_scores, /get_user_ranking, /get_leaderboard |
 | Game | /game | /v1 | /new_game, /get_game, /guess_char, /get_user_games, /get_user_completed_games, /cancel_game, /get_game_history |
 
-Full API usage [here](docs/api_usage.md)
+Full API usage [here](api_usage.md)
 
 ---
 
