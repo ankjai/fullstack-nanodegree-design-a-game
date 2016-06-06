@@ -1,6 +1,9 @@
 import endpoints
 from google.appengine.ext import ndb
-from protorpc import remote, message_types
+from protorpc import (
+    remote,
+    message_types
+)
 from trueskill import Rating
 
 from messages import UserResponse, CreateUserForm, UpdateUserForm, GetUserForm

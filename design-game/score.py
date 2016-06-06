@@ -2,10 +2,24 @@ import endpoints
 from protorpc import remote
 from trueskill import TrueSkill
 
-from messages import GetScoreResponse, GetGameForm, GetUserForm, GetScoreForm, GetScoreForms, GetAllScoreForm, \
-    GetUserRankingResponse, GetUserRankingResponseList
-from utils import get_all_scores, get_game, get_game_score, get_all_users, get_user, \
+from messages import (
+    GetScoreResponse,
+    GetGameForm,
+    GetUserForm,
+    GetScoreForm,
+    GetScoreForms,
+    GetAllScoreForm,
+    GetUserRankingResponse,
+    GetUserRankingResponseList
+)
+from utils import (
+    get_all_scores,
+    get_game,
+    get_game_score,
+    get_all_users,
+    get_user,
     get_user_score_orderby_game_score
+)
 
 GET_SCORE_REQUEST = endpoints.ResourceContainer(GetGameForm)
 GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
@@ -105,30 +119,30 @@ class ScoreApi(remote.Service):
 
     @staticmethod
     def _copy_score_to_form(score):
-        gsf = GetScoreForm()
+        score_form = GetScoreForm()
 
-        for field in gsf.all_fields():
+        for field in score_form.all_fields():
             if field.name == 'urlsafe_game_key':
-                setattr(gsf, field.name, getattr(score, 'game_key').urlsafe())
+                setattr(score_form, field.name, getattr(score, 'game_key').urlsafe())
             elif hasattr(score, field.name):
-                setattr(gsf, field.name, getattr(score, field.name))
+                setattr(score_form, field.name, getattr(score, field.name))
 
-        gsf.check_initialized()
+        score_form.check_initialized()
 
-        return gsf
+        return score_form
 
     @staticmethod
     def _copy_ranking_response_to_list(user, leaderboard):
-        gurr = GetUserRankingResponse()
+        user_ranking_resp = GetUserRankingResponse()
 
-        for field in gurr.all_fields():
+        for field in user_ranking_resp.all_fields():
             if field.name == 'user_performance':
-                setattr(gurr, field.name, user.mu)
+                setattr(user_ranking_resp, field.name, user.mu)
             elif field.name == 'user_ranking':
-                setattr(gurr, field.name, leaderboard.index(user) + 1)
+                setattr(user_ranking_resp, field.name, leaderboard.index(user) + 1)
             elif hasattr(user, field.name):
-                setattr(gurr, field.name, getattr(user, field.name))
+                setattr(user_ranking_resp, field.name, getattr(user, field.name))
 
-        gurr.check_initialized()
+        user_ranking_resp.check_initialized()
 
-        return gurr
+        return user_ranking_resp
