@@ -1,7 +1,21 @@
+#### API Usage
+
+```
+BASE_URL = "https://design-game.appspot.com/_ah/api"
+```
+
+Note: Append the API endpoints to base URL to access them
+```
+For E.g.: https://design-game.appspot.com/_ah/api/user/v1/get_user?user_name=<data>
+```
+
+---
+
 ###### User APIs
 
 **_Create User_**  
-`/user/v1/create_user`  
+`POST /user/v1/create_user`   
+`Content-Type: application/json`  
 
 Request:
 ```
@@ -22,14 +36,8 @@ Response:
 ```
 
 **_Get User_**  
-`/user/v1/get_user`
+`GET /user/v1/get_user?user_name=<data>`  
 
-Request:
-```
-{
- "user_name": "<data>"
-}
-```
 Response:  
 ```
 200 OK  
@@ -41,7 +49,8 @@ Response:
 ```
 
 **_Update User_**  
-`/user/v1/update_user`  
+`PATCH /user/v1/update_user`  
+`Content-Type: application/json`  
 Request:
 ```
 {
@@ -62,13 +71,7 @@ Response:
 ```
 
 **_Delete User_**  
-`/user/v1/delete_user`  
-Request:
-```
-{
- "user_name": "<data>"
-}
-```  
+`DELETE /user/v1/delete_user?user_name=<data>`  
 Response:
 ```
 204  
@@ -82,14 +85,8 @@ Response:
 ###### Score APIs
 
 **_Get All Scores_**  
-`/score/v1/get_all_scores`  
+`GET /score/v1/get_all_scores?fetch=<no. of score items ordered by score desc>`  
 
-Request:
-```
-{
- "fetch": "<no. of score items ordered by score desc>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -106,15 +103,8 @@ Response:
 ```  
 
 **_Get Game Score_**  
-`/score/v1/get_game_score`  
+`GET /score/v1/get_game_score?user_name=<data>&urlsafe_key=<data>`  
 
-Request:
-```
-{
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyKwsSBFVzZXIiF2Fua2l0LmphaXN3YWxAZ21haWwuY29tDAsSBEdhbWUYAQw",
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -126,14 +116,8 @@ Response:
 ```  
 
 **_Get Leaderboard_**  
-`/score/v1/get_leaderboard`  
+`GET /score/v1/get_leaderboard?fetch=<no. of score items ordered by score desc>`  
 
-Request:
-```
-{
- "fetch": "<no. of rankings ordered by user_ranking asc>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -149,14 +133,8 @@ Response:
 ```  
 
 **_Get User Ranking_**  
-`/score/v1/get_user_ranking`  
+`GET /score/v1/get_user_ranking?user_name=<data>`  
 
-Request:
-```
-{
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -168,14 +146,8 @@ Response:
 ```  
 
 **_Get User Scores_**  
-`/score/v1/get_user_scores`  
+`GET /score/v1/get_user_scores?user_name=<data>`  
 
-Request:
-```
-{
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -204,15 +176,8 @@ Response:
 ###### Game APIs
 
 **_Get Game_**  
-`/game/v1/get_game`  
+`GET /game/v1/get_game?user_name=<data>&urlsafe_key=<data>`  
 
-Request:
-```
-{
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyKwsSBFVzZXIiF2Fua2l0LmphaXN3YWxAZ21haWwuY29tDAsSBEdhbWUYCww",
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -236,15 +201,8 @@ Response:
 ```  
 
 **_Get Game History_**  
-`/game/v1/get_game_history`  
+`GET /game/v1/get_game_history?user_name=<data>&urlsafe_key=<data>`  
 
-Request:
-```
-{
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyKwsSBFVzZXIiF2Fua2l0LmphaXN3YWxAZ21haWwuY29tDAsSBEdhbWUYCww",
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -271,14 +229,8 @@ Response:
 ```  
 
 **_Get User Completed Games_**  
-`/game/v1/get_user_completed_games`  
+`GET /game/v1/get_user_completed_games?user_name=<data>`  
 
-Request:
-```
-{
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -296,15 +248,9 @@ Response:
 ```  
 
 **_Get User Games_**  
-`/game/v1/get_user_games`  
+`GAME STATUS VALUES: 'IN_SESSION', 'WON', 'LOST' and 'ABORTED'`  
+`GET /game/v1/get_user_games?user_name=<data>&game_status=<data>`  
 
-Request:
-```
-{
- "game_status": 1,       //int values = 1 (IN_SESSION), 2 (WON), 3 (LOST), 4 (ABORTED)
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
@@ -322,14 +268,15 @@ Response:
 ```  
 
 **_Guess Char_**  
-`/game/v1/guess_char`  
+`POST /game/v1/guess_char`  
+`Content-Type: application/json`  
 
 Request:
 ```
 {
  "char": "z",
  "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyKwsSBFVzZXIiF2Fua2l0LmphaXN3YWxAZ21haWwuY29tDAsSBEdhbWUYCww",
- "user_name": "ankit.jaiswal@gmail.com"
+ "user_name": <data>
 }
 ```  
 Response:  
@@ -355,25 +302,8 @@ Response:
 ```  
 
 **_New Game_**  
-`/game/v1/new_game`  
-
-Request:
-```
-{
- "game_name": "<data>",
- "user_name": "<data>"
-}
-```  
-Response:  
-```
-200 OK  
-{
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyGAsSBFVzZXIiBHRlc3QMCxIER2FtZRgPDA"
-}
-```  
-
-**_New Game_**  
-`/game/v1/new_game`  
+`POST /game/v1/new_game`  
+`Content-Type: application/json`  
 
 Request:
 ```
@@ -391,15 +321,8 @@ Response:
 ```  
 
 **_Cancel Game_**  
-`/game/v1/cancel_game`  
+`DELETE /game/v1/cancel_game?user_name=<data>&urlsafe_key=<data>`  
 
-Request:
-```
-{
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyGAsSBFVzZXIiBHRlc3QMCxIER2FtZRgPDA",
- "user_name": "<data>"
-}
-```  
 Response:  
 ```
 200 OK  
