@@ -84,40 +84,21 @@ class CreateUserForm(messages.Message):
 
 class UpdateUserForm(messages.Message):
     """Update User"""
-    current_user_name = messages.StringField(1, required=True)
-    user_name = messages.StringField(2)
-    email = messages.StringField(3)
-    display_name = messages.StringField(4)
-
-
-class GetUserForm(messages.Message):
-    """Get User"""
-    user_name = messages.StringField(1, required=True)
-
-
-class GetUserFormWithGameStatus(messages.Message):
-    """Get User w/ game status"""
-    user_name = messages.StringField(1, required=True)
-    game_status = messages.EnumField(GameStatus, 2)
+    # reason not to combine UpdateUserForm w/ CreateUserForm
+    # is because 'user_name' and 'email' are not required fields here
+    user_name = messages.StringField(1)
+    email = messages.StringField(2)
+    display_name = messages.StringField(3)
 
 
 class NewGameForm(messages.Message):
     """New Game"""
-    user_name = messages.StringField(1, required=True)
-    game_name = messages.StringField(2)
-
-
-class GetGameForm(messages.Message):
-    """Get Game"""
-    user_name = messages.StringField(1, required=True)
-    urlsafe_key = messages.StringField(2, required=True)
+    game_name = messages.StringField(1)
 
 
 class GuessCharForm(messages.Message):
     """Guess Char of the Word"""
-    user_name = messages.StringField(1, required=True)
-    urlsafe_key = messages.StringField(2, required=True)
-    char = messages.StringField(3, required=True)
+    char = messages.StringField(1, required=True)
 
 
 class GetScoreForm(messages.Message):
@@ -131,8 +112,3 @@ class GetScoreForm(messages.Message):
 class GetScoreForms(messages.Message):
     """Multi GetScoreForm"""
     items = messages.MessageField(GetScoreForm, 1, repeated=True)
-
-
-class GetAllScoreForm(messages.Message):
-    """Get All Scores"""
-    fetch = messages.IntegerField(1)

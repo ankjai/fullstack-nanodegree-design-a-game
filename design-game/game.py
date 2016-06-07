@@ -1,6 +1,9 @@
 import endpoints
 from google.appengine.ext import ndb
-from protorpc import remote
+from protorpc import (
+    remote,
+    messages
+)
 from random_words import RandomWords
 from trueskill import (
     Rating,
@@ -8,17 +11,14 @@ from trueskill import (
 )
 
 from messages import (
-    GetUserForm,
     NewGameForm,
     NewGameResponse,
-    GetGameForm,
     GetGameResponse,
     GuessCharForm,
     GetActiveGameResponseList,
     GetActiveGameResponse,
     GetGameHistoryResponseList,
-    GetGameHistoryResponse,
-    GetUserFormWithGameStatus
+    GetGameHistoryResponse
 )
 from models import (
     Game,
@@ -35,11 +35,26 @@ from utils import (
     get_game_history
 )
 
-GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
-GET_USER_WITH_GAME_STATUS_REQUEST = endpoints.ResourceContainer(GetUserFormWithGameStatus)
-NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
-GET_GAME_REQUEST = endpoints.ResourceContainer(GetGameForm)
-GUESS_CHAR_REQUEST = endpoints.ResourceContainer(GuessCharForm)
+GET_USER_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True)
+)
+GET_USER_WITH_GAME_STATUS_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True),
+    game_status=messages.EnumField(GameStatus, 2)
+)
+NEW_GAME_REQUEST = endpoints.ResourceContainer(
+    NewGameForm,
+    user_name=messages.StringField(1, required=True)
+)
+GET_GAME_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True),
+    urlsafe_key=messages.StringField(2, required=True)
+)
+GUESS_CHAR_REQUEST = endpoints.ResourceContainer(
+    GuessCharForm,
+    user_name=messages.StringField(1, required=True),
+    urlsafe_key=messages.StringField(2, required=True)
+)
 
 game_api = endpoints.api(name='game', version='v1')
 
@@ -169,7 +184,7 @@ class GameApi(remote.Service):
         completed_games = all_games.filter(completed_filter).order(Game.game_status, -Game.game_id).fetch()
 
         return GetActiveGameResponseList(
-            games=[self._create_active_game_list(completed_games) for completed_games in completed_games]
+            games=[self._create_active_game_list(game) for game in completed_games]
         )
 
     @endpoints.method(request_message=GET_GAME_REQUEST,

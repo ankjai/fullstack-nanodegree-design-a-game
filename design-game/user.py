@@ -2,18 +2,23 @@ import endpoints
 from google.appengine.ext import ndb
 from protorpc import (
     remote,
+    messages,
     message_types
 )
 from trueskill import Rating
 
-from messages import UserResponse, CreateUserForm, UpdateUserForm, GetUserForm
+from messages import UserResponse, CreateUserForm, UpdateUserForm
 from models import User
 from utils import get_user
 
 CREATE_USER_REQUEST = endpoints.ResourceContainer(CreateUserForm)
-GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
-UPDATE_USER_REQUEST = endpoints.ResourceContainer(UpdateUserForm)
-DELETE_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
+GET_USER_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True)
+)
+UPDATE_USER_REQUEST = endpoints.ResourceContainer(
+    UpdateUserForm,
+    current_user_name=messages.StringField(1, required=True)
+)
 
 user_api = endpoints.api(name='user', version='v1')
 
@@ -87,7 +92,7 @@ class UserApi(remote.Service):
 
         return UserResponse(user_name=user.user_name, email=user.email, display_name=user.display_name)
 
-    @endpoints.method(request_message=DELETE_USER_REQUEST,
+    @endpoints.method(request_message=GET_USER_REQUEST,
                       response_message=message_types.VoidMessage,
                       path='delete_user',
                       name='delete_user',
