@@ -191,7 +191,7 @@ class GameApi(remote.Service):
                       response_message=GetActiveGameResponse,
                       path='cancel_game',
                       name='cancel_game',
-                      http_method='DELETE')
+                      http_method='PATCH')
     def endpoint_cancel_game(self, request):
         """Cancel active game"""
         game = get_game(request.urlsafe_key, request.user_name)
