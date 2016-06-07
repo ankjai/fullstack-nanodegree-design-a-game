@@ -49,12 +49,11 @@ Response:
 ```
 
 **_Update User_**  
-`PATCH /user/v1/update_user`  
+`PATCH /user/v1/update_user?current_user_name=<data>`  
 `Content-Type: application/json`  
 Request:
 ```
 {
- "current_user_name": "<data>",
  "display_name": "<data>",
  "email": "<data>",
  "user_name": "<data>"
@@ -268,15 +267,13 @@ Response:
 ```  
 
 **_Guess Char_**  
-`POST /game/v1/guess_char`  
+`POST /game/v1/guess_char?user_name=<data>&urlsafe_key=<data>`  
 `Content-Type: application/json`  
 
 Request:
 ```
 {
- "char": "z",
- "urlsafe_key": "ag9kZXZ-ZGVzaWduLWdhbWVyKwsSBFVzZXIiF2Fua2l0LmphaXN3YWxAZ21haWwuY29tDAsSBEdhbWUYCww",
- "user_name": <data>
+ "char": "z"
 }
 ```  
 Response:  
@@ -302,14 +299,13 @@ Response:
 ```  
 
 **_New Game_**  
-`POST /game/v1/new_game`  
+`POST /game/v1/new_game?user_name=<data>`  
 `Content-Type: application/json`  
 
 Request:
 ```
 {
- "game_name": "<data>",
- "user_name": "<data>"
+ "game_name": "<data>"
 }
 ```  
 Response:  
@@ -321,7 +317,7 @@ Response:
 ```  
 
 **_Cancel Game_**  
-`DELETE /game/v1/cancel_game?user_name=<data>&urlsafe_key=<data>`  
+`PATCH /game/v1/cancel_game?user_name=<data>&urlsafe_key=<data>`  
 
 Response:  
 ```
