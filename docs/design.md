@@ -59,11 +59,11 @@ Code Path: `/fullstack-nanodegree-design-a-game/design-game/models.py`
 
 ###### Messages/Resource Containers
 
-For Contributors:
+For Contributors:  
 All response messages and forms for resource container can be referred in `messages.py`  
 Code Path: `/fullstack-nanodegree-design-a-game/design-game/messages.py`
 
-For API Consumers/Developers:
+For API Consumers/Developers:  
 To know the request/response params details, please refer to API usage [document](docs/api_usage.md)
 
 ---
