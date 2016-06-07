@@ -33,6 +33,7 @@ Ranking of players on the other hand is very complex and it uses python module [
 
 TrueSkill is a rating system among game players. It was developed by Microsoft Research and has been used on Xbox LIVE for ranking and matchmaking service. This system quantifies players’ TRUE skill points by the Bayesian inference algorithm. It also works well with any type of match rule including N:N team game or free-for-all.
 
+Player is ranked using TrueSkill's 'A Bayesian Skill Rating System', it is difficult to explain how it is done in this readme file so to further understand the algorithm read ['Further More'](http://trueskill.org/#further-more) section in trueskill.org. 
 
 ---
 

@@ -59,8 +59,12 @@ Code Path: `/fullstack-nanodegree-design-a-game/design-game/models.py`
 
 ###### Messages/Resource Containers
 
-Not going to list all response messages and forms for resource container here, but you can refer them in `messages.py`  
+For Contributors:
+All response messages and forms for resource container can be referred in `messages.py`  
 Code Path: `/fullstack-nanodegree-design-a-game/design-game/messages.py`
+
+For API Consumers/Developers:
+To know the request/response params details, please refer to API usage [document](docs/api_usage.md)
 
 ---
 
@@ -94,3 +98,11 @@ For ranking players, game is using [TrueSkill](http://trueskill.org/).
 TrueSkill is a rating system among game players. It was developed by Microsoft Research and has been used on Xbox LIVE for ranking and matchmaking service. This system quantifies players’ TRUE skill points by the Bayesian inference algorithm. It also works well with any type of match rule including N:N team game or free-for-all.
 
 The game is using [Head-to-head (1 vs. 1)](http://trueskill.org/#head-to-head-1-vs-1-match-rule) match rule to rank players.
+
+
+---
+
+
+###### Game Word Generator
+
+For generating game words, project is using [RandomWords](https://pypi.python.org/pypi/RandomWords/0.2.0) python module.  
