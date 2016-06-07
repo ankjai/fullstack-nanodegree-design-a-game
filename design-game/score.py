@@ -1,14 +1,14 @@
 import endpoints
-from protorpc import remote
+from protorpc import (
+    remote,
+    messages
+)
 from trueskill import TrueSkill
 
 from messages import (
     GetScoreResponse,
-    GetGameForm,
-    GetUserForm,
     GetScoreForm,
     GetScoreForms,
-    GetAllScoreForm,
     GetUserRankingResponse,
     GetUserRankingResponseList
 )
@@ -21,9 +21,16 @@ from utils import (
     get_user_score_orderby_game_score
 )
 
-GET_SCORE_REQUEST = endpoints.ResourceContainer(GetGameForm)
-GET_USER_REQUEST = endpoints.ResourceContainer(GetUserForm)
-GET_ALL_SCORE_REQUEST = endpoints.ResourceContainer(GetAllScoreForm)
+GET_GAME_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True),
+    urlsafe_key=messages.StringField(2, required=True)
+)
+GET_USER_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True)
+)
+GET_ALL_SCORE_REQUEST = endpoints.ResourceContainer(
+    fetch=messages.IntegerField(1)
+)
 
 score_api = endpoints.api(name='score', version='v1')
 
@@ -32,7 +39,7 @@ score_api = endpoints.api(name='score', version='v1')
 class ScoreApi(remote.Service):
     """Score APIs"""
 
-    @endpoints.method(request_message=GET_SCORE_REQUEST,
+    @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GetScoreResponse,
                       path='get_game_score',
                       name='get_game_score',
